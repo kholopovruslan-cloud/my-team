@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpongeBob & Kittens BMI Calculator</title>
+  <style>
+    :root {
+      --sponge-yellow: #facc15;
+      --sponge-dark: #ca8a04;
+      --ocean-blue: #0284c7;
+      --ocean-light: #e0f2fe;
+      --bubble-cyan: #38bdf8;
+      --krabby-red: #ef4444;
+      --kelp-green: #10b981;
+      --sand-bg: #fefce8;
+      --card-bg: rgba(255, 255, 255, 0.94);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #cbd5e1;
+      --shadow: 0 20px 35px -10px rgba(2, 132, 199, 0.15), 0 10px 15px -5px rgba(0, 0, 0, 0.05);
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Comic Sans MS", "Fredoka", cursive, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #bae6fd 0%, #e0f2fe 45%, #fef08a 100%);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 30px 16px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Ambient floating bubbles */
+    .bubble {
+      position: absolute;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(56, 189, 248, 0.25));
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: floatUp 12s infinite linear;
+      z-index: 0;
+    }
+
+    .bubble:nth-child(1) { width: 45px; height: 45px; left: 8%; animation-duration: 11s; animation-delay: 0s; }
+    .bubble:nth-child(2) { width: 25px; height: 25px; left: 22%; animation-duration: 9s; animation-delay: 3s; }
+    .bubble:nth-child(3) { width: 60px; height: 60px; right: 12%; animation-duration: 14s; animation-delay: 1s; }
+    .bubble:nth-child(4) { width: 35px; height: 35px; right: 28%; animation-duration: 10s; animation-delay: 5s; }
+
+    @keyframes floatUp {
+      0% {
+        bottom: -70px;
+        transform: translateX(0) scale(0.9);
+        opacity: 0;
+      }
+      20% {
+        opacity: 0.7;
+      }
+      80% {
+        opacity: 0.7;
+      }
+      100% {
+        bottom: 105vh;
+        transform: translateX(35px) scale(1.1);
+        opacity: 0;
+      }
+    }
+
+    .calculator-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      max-width: 500px;
+      width: 100%;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 34px 30px;
+      border: 2px solid rgba(255, 255, 255, 0.8);
+      position: relative;
+      z-index: 1;
+    }
+
+    .theme-header {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .theme-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fef08a;
+      color: #854d0e;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid #fde047;
+      margin-bottom: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #0369a1;
+      letter-spacing: -0.01em;
+      margin-bottom: 6px;
+    }
+
+    p.subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #1e293b;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 13px 52px 13px 16px;
+      font-size: 16px;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      outline: none;
+      transition: all 0.2s ease;
+      background-color: #ffffff;
+      color: var(--text-main);
+    }
+
+    input[type="text"]:focus {
+      border-color: #0284c7;
+      box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.15);
+    }
+
+    .unit-tag {
+      position: absolute;
+      right: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #64748b;
+      background: #f1f5f9;
+      padding: 3px 8px;
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    button {
+      padding: 14px 20px;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    .btn-calculate {
+      background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+      color: #713f12;
+      flex: 2;
+      border: 2px solid #ca8a04;
+      box-shadow: 0 4px 10px rgba(234, 179, 8, 0.35);
+    }
+
+    .btn-calculate:hover {
+      background: linear-gradient(135deg, #fde047 0%, #facc15 100%);
+      box-shadow: 0 6px 14px rgba(234, 179, 8, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .btn-reset {
+      background-color: #f1f5f9;
+      color: #475569;
+      flex: 1;
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-reset:hover {
+      background-color: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .error-box {
+      margin-top: 18px;
+      padding: 12px 16px;
+      background-color: #fef2f2;
+      border: 1.5px solid #fecaca;
+      border-radius: 12px;
+      color: #b91c1c;
+      font-size: 14px;
+      font-weight: 600;
+      display: none;
+      line-height: 1.4;
+      animation: shake 0.3s ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+
+    /* Mascot greeting & reaction panel */
+    .mascot-panel {
+      margin-top: 24px;
+      background: #f8fafc;
+      border: 2px dashed #cbd5e1;
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .mascot-avatar {
+      font-size: 40px;
+      min-width: 50px;
+      text-align: center;
+      animation: bounceMascot 2s infinite ease-in-out;
+    }
+
+    @keyframes bounceMascot {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    .mascot-text {
+      flex: 1;
+    }
+
+    .mascot-title {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #0284c7;
+      margin-bottom: 2px;
+    }
+
+    .mascot-quote {
+      font-size: 14px;
+      font-weight: 500;
+      color: #334155;
+      line-height: 1.4;
+    }
+
+    /* Result Section */
+    .result-section {
+      margin-top: 24px;
+      padding-top: 22px;
+      border-top: 2px solid #e2e8f0;
+      display: none;
+      animation: popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.96) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .result-badge-heading {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .bmi-value-display {
+      font-size: 48px;
+      font-weight: 900;
+      text-align: center;
+      line-height: 1;
+      color: #0369a1;
+      margin-bottom: 8px;
+    }
+
+    .badge-container {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .category-badge {
+      display: inline-block;
+      padding: 6px 18px;
+      font-size: 15px;
+      font-weight: 800;
+      border-radius: 999px;
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Rainbow Scale Bar */
+    .scale-container {
+      margin: 20px 0 16px;
+    }
+
+    .scale-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+
+    .scale-bar {
+      display: flex;
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background-color: #e2e8f0;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .scale-seg {
+      flex: 1;
+      opacity: 0.35;
+      transition: all 0.3s ease;
+    }
+
+    .scale-seg.active {
+      opacity: 1;
+      transform: scaleY(1.3);
+    }
+
+    .seg-underweight { background-color: #0284c7; }
+    .seg-normal { background-color: #10b981; }
+    .seg-overweight { background-color: #f59e0b; }
+    .seg-obese { background-color: #ef4444; }
+
+    /* Category reference table */
+    .category-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 4px;
+      font-size: 13px;
+      margin-top: 14px;
+    }
+
+    .category-table td {
+      padding: 8px 12px;
+      background: #f8fafc;
+      transition: background 0.2s;
+    }
+
+    .category-table td:first-child {
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+      font-weight: 700;
+    }
+
+    .category-table td:last-child {
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+
+    .category-table tr.active-row td {
+      background-color: #fef08a;
+      color: #713f12;
+      font-weight: 800;
+    }
+
+    .dot-indicator {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .disclaimer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating animated bubbles -->
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+
+  <main class="calculator-card">
+    <header class="theme-header">
+      <div class="theme-tag">
+        <span>🧽</span> SpongeBob & Kittens Edition <span>🐱</span>
+      </div>
+      <h1>BMI Calculator</h1>
+      <p class="subtitle">Calculate your Body Mass Index with Bikini Bottom friends!</p>
+    </header>
+
+    <form id="bmiForm" onsubmit="return false;">
+      <div class="form-group">
+        <label for="heightInput">
+          <span>Height</span>
+          <span style="font-size: 12px; font-weight: normal; color: var(--text-muted);">📏 centimeters</span>
+        </label>
+        <div class="input-wrapper">
+          <input type="text" inputmode="decimal" id="heightInput" placeholder="e.g. 175" autocomplete="off">
+          <span class="unit-tag">cm</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="weightInput">
+          <span>Weight</span>
+          <span style="font-size: 12px; font-weight: normal; color: var(--text-muted);">⚖️ kilograms</span>
+        </label>
+        <div class="input-wrapper">
+          <input type="text" inputmode="decimal" id="weightInput" placeholder="e.g. 68" autocomplete="off">
+          <span class="unit-tag">kg</span>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button type="button" class="btn-calculate" id="calculateBtn">
+          <span>🧽</span> Calculate BMI
+        </button>
+        <button type="button" class="btn-reset" id="resetBtn">
+          <span>🐾</span> Clear
+        </button>
+      </div>
+    </form>
+
+    <div class="error-box" id="errorBox" role="alert"></div>
+
+    <!-- Reactive Mascot commentary panel -->
+    <div class="mascot-panel" id="mascotPanel">
+      <div class="mascot-avatar" id="mascotAvatar">🧽🐱</div>
+      <div class="mascot-text">
+        <div class="mascot-title" id="mascotTitle">Gary & SpongeBob are ready!</div>
+        <div class="mascot-quote" id="mascotQuote">Enter your height and weight above to see your health stats! Meow!</div>
+      </div>
+    </div>
+
+    <!-- Accessible Result block -->
+    <section class="result-section" id="resultSection" aria-live="polite">
+      <div class="result-badge-heading">Your Body Mass Index</div>
+      <div class="bmi-value-display" id="bmiValue">--</div>
+      
+      <div class="badge-container">
+        <span class="category-badge" id="categoryBadge">Normal weight</span>
+      </div>
+
+      <div class="scale-container">
+        <div class="scale-labels">
+          <span>&lt;18.5 Underweight</span>
+          <span>18.5–24.9 Normal</span>
+          <span>25.0–29.9 Over</span>
+          <span>≥30.0 Obese</span>
+        </div>
+        <div class="scale-bar">
+          <div class="scale-seg seg-underweight" id="segUnderweight" title="Underweight"></div>
+          <div class="scale-seg seg-normal" id="segNormal" title="Normal weight"></div>
+          <div class="scale-seg seg-overweight" id="segOverweight" title="Overweight"></div>
+          <div class="scale-seg seg-obese" id="segObese" title="Obese"></div>
+        </div>
+      </div>
+
+      <table class="category-table">
+        <tbody>
+          <tr id="rowUnderweight">
+            <td><span class="dot-indicator" style="background-color: #0284c7;"></span>&lt; 18.5</td>
+            <td>Underweight</td>
+          </tr>
+          <tr id="rowNormal">
+            <td><span class="dot-indicator" style="background-color: #10b981;"></span>18.5 – 24.9</td>
+            <td>Normal weight</td>
+          </tr>
+          <tr id="rowOverweight">
+            <td><span class="dot-indicator" style="background-color: #f59e0b;"></span>25.0 – 29.9</td>
+            <td>Overweight</td>
+          </tr>
+          <tr id="rowObese">
+            <td><span class="dot-indicator" style="background-color: #ef4444;"></span>≥ 30.0</td>
+            <td>Obese</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer class="disclaimer">
+      BMI is only an indicator and does not replace a doctor's consultation.
+    </footer>
+  </main>
+
+  <script>
+    const heightInput = document.getElementById('heightInput');
+    const weightInput = document.getElementById('weightInput');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const errorBox = document.getElementById('errorBox');
+    const resultSection = document.getElementById('resultSection');
+    const bmiValueEl = document.getElementById('bmiValue');
+    const categoryBadgeEl = document.getElementById('categoryBadge');
+
+    const mascotPanel = document.getElementById('mascotPanel');
+    const mascotAvatar = document.getElementById('mascotAvatar');
+    const mascotTitle = document.getElementById('mascotTitle');
+    const mascotQuote = document.getElementById('mascotQuote');
+
+    const segments = {
+      underweight: document.getElementById('segUnderweight'),
+      normal: document.getElementById('segNormal'),
+      overweight: document.getElementById('segOverweight'),
+      obese: document.getElementById('segObese')
+    };
+
+    const rows = {
+      underweight: document.getElementById('rowUnderweight'),
+      normal: document.getElementById('rowNormal'),
+      overweight: document.getElementById('rowOverweight'),
+      obese: document.getElementById('rowObese')
+    };
+
+    function showError(message) {
+      errorBox.textContent = message;
+      errorBox.style.display = 'block';
+      resultSection.style.display = 'none';
+
+      // Mascot reaction to error
+      mascotAvatar.textContent = '😿🦀';
+      mascotTitle.textContent = 'Barnacles! Check the input';
+      mascotQuote.textContent = 'Mr. Krabs says something looks fishy with those numbers! Try again.';
+    }
+
+    function clearError() {
+      errorBox.textContent = '';
+      errorBox.style.display = 'none';
+    }
+
+    function calculateBMI() {
+      clearError();
+
+      const heightRaw = heightInput.value.trim();
+      const weightRaw = weightInput.value.trim();
+
+      // 1. Check for empty fields
+      if (!heightRaw || !weightRaw) {
+        showError('Please fill in both fields: enter your height and weight.');
+        return;
+      }
+
+      // Normalize decimal separators (support comma and dot)
+      const normalizedHeight = heightRaw.replace(',', '.');
+      const normalizedWeight = weightRaw.replace(',', '.');
+
+      const heightCm = Number(normalizedHeight);
+      const weightKg = Number(normalizedWeight);
+
+      // 2. Check for non-numeric input
+      if (isNaN(heightCm) || isNaN(weightKg) || !isFinite(heightCm) || !isFinite(weightKg)) {
+        showError('Please enter valid numerical values.');
+        return;
+      }
+
+      // 3. Check for non-positive input
+      if (heightCm <= 0 || weightKg <= 0) {
+        showError('Height and weight must be strictly greater than zero.');
+        return;
+      }
+
+      // 4. Realistic ranges validation
+      if (heightCm < 30 || heightCm > 300) {
+        showError('Please enter a realistic height (30 to 300 cm).');
+        return;
+      }
+
+      if (weightKg < 2 || weightKg > 600) {
+        showError('Please enter a realistic weight (2 to 600 kg).');
+        return;
+      }
+
+      // Formula: kg / (m^2)
+      const heightM = heightCm / 100;
+      const rawBmi = weightKg / (heightM * heightM);
+
+      // Category evaluation based strictly on UNROUNDED BMI
+      let category = '';
+      let color = '';
+      let categoryKey = '';
+      let avatar = '';
+      let title = '';
+      let quote = '';
+
+      if (rawBmi < 18.5) {
+        category = 'Underweight';
+        color = '#0284c7';
+        categoryKey = 'underweight';
+        avatar = '🐱🥣';
+        title = 'Light as a sea-kitten feather!';
+        quote = 'SpongeBob says: "Time for a hearty Krabby Patty and a warm bowl of Gary’s favorite treats!"';
+      } else if (rawBmi < 25.0) {
+        category = 'Normal weight';
+        color = '#10b981';
+        categoryKey = 'normal';
+        avatar = '🧽✨😺';
+        title = "I'm ready! Purr-fect balance!";
+        quote = 'SpongeBob & the kittens cheer: "Golden Bikini Bottom health! You are in tip-top shape!"';
+      } else if (rawBmi < 30.0) {
+        category = 'Overweight';
+        color = '#f59e0b';
+        categoryKey = 'overweight';
+        avatar = '🍔😻🍍';
+        title = 'Fluffy cuddle-cat energy!';
+        quote = 'Patrick & cute kitty say: "Nothing wrong with some extra fluff, but maybe pace the Kelp Shakes!"';
+      } else {
+        category = 'Obese';
+        color = '#ef4444';
+        categoryKey = 'obese';
+        avatar = '🏋️‍♂️🐡🐱';
+        title = 'Maximum Chonker power!';
+        quote = 'Sandy Cheeks recommends: "Time to hit the jellyfishing fields for some healthy outdoor fun!"';
+      }
+
+      // Display rounding strictly to 1 decimal place
+      const roundedBmi = parseFloat(rawBmi.toFixed(1));
+      bmiValueEl.textContent = roundedBmi.toFixed(1);
+
+      categoryBadgeEl.textContent = category;
+      categoryBadgeEl.style.backgroundColor = color;
+
+      // Update mascot commentary
+      mascotAvatar.textContent = avatar;
+      mascotTitle.textContent = title;
+      mascotQuote.textContent = quote;
+
+      // Update scale bar segments
+      Object.keys(segments).forEach(key => {
+        segments[key].classList.toggle('active', key === categoryKey);
+      });
+
+      // Update category table rows
+      Object.keys(rows).forEach(key => {
+        rows[key].classList.toggle('active-row', key === categoryKey);
+      });
+
+      resultSection.style.display = 'block';
+    }
+
+    function resetForm() {
+      heightInput.value = '';
+      weightInput.value = '';
+      clearError();
+      resultSection.style.display = 'none';
+
+      mascotAvatar.textContent = '🧽🐱';
+      mascotTitle.textContent = 'Gary & SpongeBob are ready!';
+      mascotQuote.textContent = 'Enter your height and weight above to see your health stats! Meow!';
+
+      heightInput.focus();
+    }
+
+    calculateBtn.addEventListener('click', calculateBMI);
+    resetBtn.addEventListener('click', resetForm);
+
+    [heightInput, weightInput].forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          calculateBMI();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
