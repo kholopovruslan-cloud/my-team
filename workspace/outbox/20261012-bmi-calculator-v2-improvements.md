@@ -1,0 +1,546 @@
+> **Передача**: Обновил калькулятор до v2 (категории определяются по неокруглённому значению ИМТ, нечисловой ввод «abc» гарантированно ловится валидацией через type="text"+inputmode="decimal", добавлены медицинский дисклеймер и aria-live="polite"); обратите внимание на пограничные проверки (24.96 -> Норма, 25.0 -> Избыточная, ввод "abc" -> ошибка числа); файлы v2 готовы к немедленному использованию.
+
+# Результат выполнения: Доработка BMI-калькулятора (v2)
+
+- **От:** 队员 · 太鲁阁 (Member · Taroko)
+- **Кому:** 领队 · 洄澜 (Leader · Wailan) / 小队长 (Captain)
+- **Дата:** 2026-10-12
+- **Основание:** `workspace/inbox/20261012-bmi-calculator-v2-improvements.md`
+- **Новый исполняемый файл:** `workspace/outbox/bmi-calculator-v2.html`
+- **Предыдущая версия сохранена:** `workspace/outbox/bmi-calculator.html` и `workspace/outbox/20261012-bmi-calculator-app.md` оставлены без изменений.
+
+---
+
+## Что было реализовано в версии v2
+
+1. **Определение категорий по неокруглённому ИМТ (`rawBmi`):**
+   - Логика изменена на:
+     ```javascript
+     if (rawBmi < 18.5) {
+       category = 'Недостаточная масса тела';
+     } else if (rawBmi < 25.0) {
+       category = 'Норма';
+     } else if (rawBmi < 30.0) {
+       category = 'Избыточная масса тела';
+     } else {
+       category = 'Ожирение';
+     }
+     ```
+   - Округление выполняется исключительно для визуального отображения: `parseFloat(rawBmi.toFixed(1))`.
+   - **Пограничные тесты:**
+     - `rawBmi = 24.96` → категория **«Норма»** (отображается как `25,0`).
+     - `rawBmi = 25.00` → категория **«Избыточная масса тела»**.
+     - `rawBmi = 29.96` → категория **«Избыточная масса тела»** (отображается как `30,0`).
+     - `rawBmi = 30.00` → категория **«Ожирение»**.
+
+2. **Гарантированное сообщение об ошибке для нечислового ввода:**
+   - Поля ввода переведены на `type="text"` с атрибутом `inputmode="decimal"`.
+   - Добавлена нормализация разделителя (поддержка запятой `,` и точки `.`).
+   - При вводе букв или символов (например, `"abc"`) срабатывает проверка `isNaN(...)` и выводится точное сообщение:  
+     `«Пожалуйста, введите корректные числовые значения.»` вместо ошибочного сообщения о пустых полях.
+   - Сохранены все проверки:
+     - Пустые поля: `«Пожалуйста, заполните оба поля: укажите рост и вес.»`
+     - Нечисловые значения: `«Пожалуйста, введите корректные числовые значения.»`
+     - Значения `<= 0`: `«Рост и вес должны быть строго больше нуля.»`
+     - Диапазоны (30–300 см, 2–600 кг): реалистичные предупреждения на русском языке.
+
+3. **Медицинский дисклеймер:**
+   - Добавлен аккуратный текст внизу карточки:
+     > *«ИМТ — лишь ориентир и не заменяет консультацию врача.»*
+
+4. **Доступность (Accessibility):**
+   - На блок с результатом (`.result-section`) добавлен атрибут `aria-live="polite"`, благодаря чему скринридеры автоматически озвучивают полученный результат при расчёте.
+
+---
+
+## Исходный код приложения (`bmi-calculator-v2.html`)
+
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Калькулятор индекса массы тела (ИМТ) v2</title>
+  <style>
+    :root {
+      --bg-color: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #cbd5e1;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --underweight: #3b82f6;
+      --normal: #10b981;
+      --overweight: #f59e0b;
+      --obese: #ef4444;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+
+    .container {
+      background-color: var(--card-bg);
+      max-width: 480px;
+      width: 100%;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 32px 28px;
+      border: 1px solid var(--border-color);
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    p.subtitle {
+      text-align: center;
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 48px 12px 14px;
+      font-size: 16px;
+      border: 1.5px solid var(--border-color);
+      border-radius: 10px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background-color: #fff;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .unit {
+      position: absolute;
+      right: 14px;
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 500;
+      pointer-events: none;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    button {
+      flex: 1;
+      padding: 13px 18px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      border: none;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #ffffff;
+      flex: 2;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background-color: #f1f5f9;
+      color: var(--text-muted);
+      flex: 1;
+    }
+
+    .btn-secondary:hover {
+      background-color: #e2e8f0;
+      color: var(--text-main);
+    }
+
+    .error-box {
+      margin-top: 18px;
+      padding: 12px 16px;
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 10px;
+      color: #b91c1c;
+      font-size: 14px;
+      display: none;
+      line-height: 1.4;
+    }
+
+    .result-section {
+      margin-top: 26px;
+      padding-top: 22px;
+      border-top: 1px solid var(--border-color);
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .bmi-number {
+      font-size: 44px;
+      font-weight: 800;
+      text-align: center;
+      line-height: 1.1;
+      color: var(--text-main);
+    }
+
+    .badge-wrapper {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .category-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 20px;
+      color: white;
+    }
+
+    .scale-bar-container {
+      margin-top: 22px;
+    }
+
+    .scale-bar {
+      display: flex;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .scale-seg {
+      flex: 1;
+      opacity: 0.35;
+      transition: opacity 0.3s;
+    }
+
+    .scale-seg.active {
+      opacity: 1;
+    }
+
+    .seg-underweight { background-color: var(--underweight); }
+    .seg-normal { background-color: var(--normal); }
+    .seg-overweight { background-color: var(--overweight); }
+    .seg-obese { background-color: var(--obese); }
+
+    .category-table {
+      margin-top: 18px;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .category-table th, .category-table td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .category-table tr.active-row {
+      font-weight: 700;
+      background-color: #f8fafc;
+      border-radius: 6px;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    .disclaimer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Калькулятор ИМТ</h1>
+    <p class="subtitle">Рассчитайте индекс массы тела по стандартам ВОЗ</p>
+
+    <div class="form-group">
+      <label for="heightInput">Рост (в сантиметрах):</label>
+      <div class="input-wrapper">
+        <input type="text" inputmode="decimal" id="heightInput" placeholder="Например: 175" autocomplete="off">
+        <span class="unit">см</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="weightInput">Вес (в килограммах):</label>
+      <div class="input-wrapper">
+        <input type="text" inputmode="decimal" id="weightInput" placeholder="Например: 68" autocomplete="off">
+        <span class="unit">кг</span>
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button type="button" class="btn-primary" id="calculateBtn">Рассчитать</button>
+      <button type="button" class="btn-secondary" id="resetBtn">Очистить</button>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <div class="result-section" id="resultSection" aria-live="polite">
+      <div class="result-title">Ваш индекс массы тела</div>
+      <div class="bmi-number" id="bmiValue">--</div>
+      <div class="badge-wrapper">
+        <span class="category-badge" id="categoryBadge">Норма</span>
+      </div>
+
+      <div class="scale-bar-container">
+        <div class="scale-bar">
+          <div class="scale-seg seg-underweight" id="segUnderweight" title="Недостаточная масса тела"></div>
+          <div class="scale-seg seg-normal" id="segNormal" title="Норма"></div>
+          <div class="scale-seg seg-overweight" id="segOverweight" title="Избыточная масса тела"></div>
+          <div class="scale-seg seg-obese" id="segObese" title="Ожирение"></div>
+        </div>
+      </div>
+
+      <table class="category-table">
+        <tbody>
+          <tr id="rowUnderweight">
+            <td><span class="dot" style="background-color: var(--underweight);"></span>Меньше 18,5</td>
+            <td>Недостаточная масса тела</td>
+          </tr>
+          <tr id="rowNormal">
+            <td><span class="dot" style="background-color: var(--normal);"></span>18,5 – 24,9</td>
+            <td>Норма</td>
+          </tr>
+          <tr id="rowOverweight">
+            <td><span class="dot" style="background-color: var(--overweight);"></span>25,0 – 29,9</td>
+            <td>Избыточная масса тела</td>
+          </tr>
+          <tr id="rowObese">
+            <td><span class="dot" style="background-color: var(--obese);"></span>30,0 и выше</td>
+            <td>Ожирение</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="disclaimer">ИМТ — лишь ориентир и не заменяет консультацию врача.</p>
+  </div>
+
+  <script>
+    const heightInput = document.getElementById('heightInput');
+    const weightInput = document.getElementById('weightInput');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const errorBox = document.getElementById('errorBox');
+    const resultSection = document.getElementById('resultSection');
+    const bmiValueEl = document.getElementById('bmiValue');
+    const categoryBadgeEl = document.getElementById('categoryBadge');
+
+    const segments = {
+      underweight: document.getElementById('segUnderweight'),
+      normal: document.getElementById('segNormal'),
+      overweight: document.getElementById('segOverweight'),
+      obese: document.getElementById('segObese')
+    };
+
+    const rows = {
+      underweight: document.getElementById('rowUnderweight'),
+      normal: document.getElementById('rowNormal'),
+      overweight: document.getElementById('rowOverweight'),
+      obese: document.getElementById('rowObese')
+    };
+
+    function showError(message) {
+      errorBox.textContent = message;
+      errorBox.style.display = 'block';
+      resultSection.style.display = 'none';
+    }
+
+    function clearError() {
+      errorBox.textContent = '';
+      errorBox.style.display = 'none';
+    }
+
+    function calculateBMI() {
+      clearError();
+
+      const heightRaw = heightInput.value.trim();
+      const weightRaw = weightInput.value.trim();
+
+      // 1. Проверка на пустые поля
+      if (!heightRaw || !weightRaw) {
+        showError('Пожалуйста, заполните оба поля: укажите рост и вес.');
+        return;
+      }
+
+      // Поддержка запятой в качестве десятичного разделителя
+      const normalizedHeight = heightRaw.replace(',', '.');
+      const normalizedWeight = weightRaw.replace(',', '.');
+
+      const heightCm = Number(normalizedHeight);
+      const weightKg = Number(normalizedWeight);
+
+      // 2. Проверка на нечисловые значения
+      if (isNaN(heightCm) || isNaN(weightKg) || !isFinite(heightCm) || !isFinite(weightKg)) {
+        showError('Пожалуйста, введите корректные числовые значения.');
+        return;
+      }
+
+      // 3. Проверка на неположительные значения
+      if (heightCm <= 0 || weightKg <= 0) {
+        showError('Рост и вес должны быть строго больше нуля.');
+        return;
+      }
+
+      // 4. Проверка на реалистичность диапазонов
+      if (heightCm < 30 || heightCm > 300) {
+        showError('Пожалуйста, введите реалистичный рост (от 30 до 300 см).');
+        return;
+      }
+
+      if (weightKg < 2 || weightKg > 600) {
+        showError('Пожалуйста, введите реалистичный вес (от 2 до 600 кг).');
+        return;
+      }
+
+      // Точный расчёт ИМТ
+      const heightM = heightCm / 100;
+      const rawBmi = weightKg / (heightM * heightM);
+
+      // Определение категории строго по НЕОКРУГЛЁННОМУ значению
+      let category = '';
+      let color = '';
+      let categoryKey = '';
+
+      if (rawBmi < 18.5) {
+        category = 'Недостаточная масса тела';
+        color = 'var(--underweight)';
+        categoryKey = 'underweight';
+      } else if (rawBmi < 25.0) {
+        category = 'Норма';
+        color = 'var(--normal)';
+        categoryKey = 'normal';
+      } else if (rawBmi < 30.0) {
+        category = 'Избыточная масса тела';
+        color = 'var(--overweight)';
+        categoryKey = 'overweight';
+      } else {
+        category = 'Ожирение';
+        color = 'var(--obese)';
+        categoryKey = 'obese';
+      }
+
+      // Округление только для отображения на экране
+      const roundedBmi = parseFloat(rawBmi.toFixed(1));
+      bmiValueEl.textContent = roundedBmi.toLocaleString('ru-RU', {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+      });
+
+      categoryBadgeEl.textContent = category;
+      categoryBadgeEl.style.backgroundColor = color;
+
+      Object.keys(segments).forEach(key => {
+        segments[key].classList.toggle('active', key === categoryKey);
+      });
+
+      Object.keys(rows).forEach(key => {
+        rows[key].classList.toggle('active-row', key === categoryKey);
+      });
+
+      resultSection.style.display = 'block';
+    }
+
+    function resetForm() {
+      heightInput.value = '';
+      weightInput.value = '';
+      clearError();
+      resultSection.style.display = 'none';
+      heightInput.focus();
+    }
+
+    calculateBtn.addEventListener('click', calculateBMI);
+    resetBtn.addEventListener('click', resetForm);
+
+    [heightInput, weightInput].forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          calculateBMI();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+```
