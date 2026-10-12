@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KATSEYE: Hootie Frutti BMI v5 × BMI Jump × Tung Tung Sahur</title>
+  <style>
+    :root {
+      --neon-pink: #ff1493;
+      --hot-pink: #ff007f;
+      --acid-green: #39ff14;
+      --cyber-yellow: #ffe600;
+      --electric-cyan: #00f0ff;
+      --deep-purple: #17002e;
+      --card-bg: rgba(22, 6, 40, 0.94);
+      --card-border: #ff007f;
+      --text-bright: #ffffff;
+      --text-muted: #e2d9f3;
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Comic Sans MS", cursive, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #100022 0%, #2e004f 45%, #0d001a 100%);
+      color: var(--text-bright);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 14px 50px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Fullscreen Celebration Confetti Canvas */
+    #confettiCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    /* TikTok Marquee Header */
+    .marquee-container {
+      width: 100%;
+      background: linear-gradient(90deg, #ff007f, #ffe600, #39ff14, #00f0ff, #ff007f);
+      background-size: 300% 100%;
+      animation: gradientShift 6s infinite linear;
+      padding: 7px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+      box-shadow: 0 4px 15px rgba(255, 0, 127, 0.5);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
+    }
+
+    .marquee-text {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 900;
+      color: #000;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      animation: marqueeScroll 22s linear infinite;
+    }
+
+    @keyframes marqueeScroll {
+      0% { transform: translateX(100vw); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* Floating Meme Background Elements */
+    .bg-floater {
+      position: fixed;
+      font-size: 32px;
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 0;
+      animation: floatBadge 8s infinite ease-in-out alternate;
+    }
+    .f1 { top: 12%; left: 5%; animation-duration: 7s; }
+    .f2 { top: 25%; right: 6%; animation-duration: 9s; }
+    .f3 { bottom: 20%; left: 6%; animation-duration: 6s; }
+    .f4 { bottom: 15%; right: 7%; animation-duration: 10s; }
+
+    @keyframes floatBadge {
+      0% { transform: translateY(0) rotate(0deg) scale(0.9); }
+      100% { transform: translateY(-24px) rotate(18deg) scale(1.15); }
+    }
+
+    /* Main Container Wrap */
+    .app-container {
+      margin-top: 25px;
+      width: 100%;
+      max-width: 520px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .calculator-card {
+      background: var(--card-bg);
+      border: 3px solid var(--card-border);
+      border-radius: var(--radius);
+      box-shadow: 0 0 30px rgba(255, 0, 127, 0.45), 0 0 60px rgba(0, 240, 255, 0.2);
+      padding: 28px 22px;
+      backdrop-filter: blur(16px);
+      position: relative;
+    }
+
+    /* Header & Badges */
+    .title-box {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .group-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #ff007f;
+      color: #ffffff;
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      box-shadow: 0 0 10px #ff007f;
+      margin-bottom: 6px;
+    }
+
+    h1.glitch-title {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--cyber-yellow);
+      text-transform: uppercase;
+      text-shadow: 2px 2px #ff007f, -2px -2px #00f0ff;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+    }
+
+    .track-badge {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--acid-green);
+      letter-spacing: 0.05em;
+    }
+
+    .members-tag {
+      font-size: 11px;
+      color: #cbd5e1;
+      margin-top: 2px;
+    }
+
+    /* Brainrot Audio & Meme Controls Bar */
+    .audio-player-bar {
+      margin: 14px 0 16px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1.5px solid rgba(255, 230, 0, 0.6);
+      border-radius: 14px;
+      padding: 10px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .audio-label {
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--cyber-yellow);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .beat-visualizer {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 16px;
+    }
+
+    .vis-bar {
+      width: 4px;
+      background: var(--acid-green);
+      height: 4px;
+      border-radius: 2px;
+      transition: height 0.1s ease;
+    }
+
+    .vis-bar.playing {
+      animation: jumpBar 0.35s infinite alternate ease-in-out;
+    }
+    .vis-bar:nth-child(1) { animation-delay: 0.05s; }
+    .vis-bar:nth-child(2) { animation-delay: 0.15s; }
+    .vis-bar:nth-child(3) { animation-delay: 0.25s; }
+    .vis-bar:nth-child(4) { animation-delay: 0.1s; }
+    .vis-bar:nth-child(5) { animation-delay: 0.2s; }
+
+    @keyframes jumpBar {
+      0% { height: 3px; background: var(--acid-green); }
+      100% { height: 16px; background: var(--hot-pink); }
+    }
+
+    .btn-audio {
+      background: linear-gradient(135deg, #ffe600, #ff007f);
+      color: #000;
+      border: none;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 900;
+      border-radius: 999px;
+      cursor: pointer;
+      text-transform: uppercase;
+      box-shadow: 0 0 8px rgba(255, 0, 127, 0.6);
+      transition: transform 0.1s;
+    }
+
+    .btn-audio:active { transform: scale(0.95); }
+
+    /* Tung Tung Tung Sahur Button */
+    .btn-sahur {
+      background: linear-gradient(135deg, #f59e0b, #b45309);
+      color: #ffffff;
+      border: 2px solid #fde68a;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 900;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+      transition: all 0.15s ease;
+    }
+
+    .btn-sahur:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.8);
+    }
+
+    .btn-sahur:active { transform: scale(0.95); }
+
+    /* Doodle Jump Game Launch Banner */
+    .game-banner {
+      background: linear-gradient(135deg, rgba(57, 255, 20, 0.18), rgba(0, 240, 255, 0.18));
+      border: 2px dashed var(--acid-green);
+      border-radius: 16px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .game-banner-text {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--cyber-yellow);
+    }
+
+    .btn-play-game {
+      background: linear-gradient(135deg, #39ff14, #00f0ff);
+      color: #000;
+      border: none;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 900;
+      border-radius: 12px;
+      cursor: pointer;
+      text-transform: uppercase;
+      box-shadow: 0 0 12px rgba(57, 255, 20, 0.6);
+      transition: all 0.15s ease;
+    }
+
+    .btn-play-game:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.9);
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      color: #ffffff;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 48px 12px 14px;
+      font-size: 16px;
+      font-weight: 700;
+      border: 2px solid #a855f7;
+      border-radius: 12px;
+      outline: none;
+      background: rgba(15, 3, 29, 0.85);
+      color: #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--electric-cyan);
+      box-shadow: 0 0 12px var(--electric-cyan);
+    }
+
+    .unit-tag {
+      position: absolute;
+      right: 12px;
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--cyber-yellow);
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 7px;
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    /* Action Buttons */
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    button.btn-main {
+      padding: 13px 16px;
+      font-size: 14px;
+      font-weight: 900;
+      border-radius: 12px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: none;
+    }
+
+    .btn-calc {
+      flex: 2;
+      background: linear-gradient(135deg, #39ff14 0%, #00f0ff 100%);
+      color: #000;
+      box-shadow: 0 0 15px rgba(57, 255, 20, 0.5);
+    }
+
+    .btn-calc:hover {
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.8);
+      transform: translateY(-2px);
+    }
+
+    .btn-calc:active { transform: scale(0.97); }
+
+    .btn-clear {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-clear:hover { background: rgba(255, 255, 255, 0.2); }
+
+    /* Error Box with Screen Shake */
+    .error-box {
+      margin-top: 14px;
+      padding: 12px 14px;
+      background: rgba(239, 68, 68, 0.3);
+      border: 2px solid #ef4444;
+      border-radius: 12px;
+      color: #fecaca;
+      font-size: 13px;
+      font-weight: 700;
+      display: none;
+      line-height: 1.4;
+    }
+
+    .screen-shake {
+      animation: hardShake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    @keyframes hardShake {
+      10%, 90% { transform: translate3d(-4px, 0, 0); }
+      20%, 80% { transform: translate3d(6px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-7px, 0, 0); }
+      40%, 60% { transform: translate3d(7px, 0, 0); }
+    }
+
+    /* Aura Panel */
+    .aura-panel {
+      margin-top: 18px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px dashed rgba(255, 0, 127, 0.6);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .aura-emoji {
+      font-size: 34px;
+      min-width: 44px;
+      text-align: center;
+      animation: pulseEmoji 1.5s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulseEmoji {
+      0% { transform: scale(0.95) rotate(-5deg); }
+      100% { transform: scale(1.1) rotate(5deg); }
+    }
+
+    .aura-text-box { flex: 1; }
+    .aura-title {
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--cyber-yellow);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .aura-quote {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f1f5f9;
+      line-height: 1.35;
+      margin-top: 2px;
+    }
+
+    /* Result Section */
+    .result-section {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 2px solid rgba(255, 255, 255, 0.15);
+      display: none;
+      animation: zoomInResult 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes zoomInResult {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .result-header {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--electric-cyan);
+    }
+
+    .bmi-number-hero {
+      font-size: 48px;
+      font-weight: 900;
+      text-align: center;
+      line-height: 1;
+      color: #ffffff;
+      text-shadow: 0 0 20px var(--hot-pink), 0 0 35px var(--electric-cyan);
+      margin: 6px 0;
+    }
+
+    .badge-center {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .category-badge-pill {
+      display: inline-block;
+      padding: 6px 16px;
+      font-size: 14px;
+      font-weight: 900;
+      border-radius: 999px;
+      color: #000;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      box-shadow: 0 0 15px currentColor;
+    }
+
+    /* Neon Scale Bar */
+    .scale-bar-track {
+      display: flex;
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 12px 0 6px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .scale-seg {
+      flex: 1;
+      opacity: 0.3;
+      transition: all 0.3s ease;
+    }
+
+    .scale-seg.active {
+      opacity: 1;
+      filter: brightness(1.3);
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    .seg-underweight { background-color: var(--electric-cyan); color: var(--electric-cyan); }
+    .seg-normal { background-color: var(--acid-green); color: var(--acid-green); }
+    .seg-overweight { background-color: var(--cyber-yellow); color: var(--cyber-yellow); }
+    .seg-obese { background-color: var(--hot-pink); color: var(--hot-pink); }
+
+    .scale-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 800;
+      color: #94a3b8;
+      margin-bottom: 10px;
+    }
+
+    /* Category Table */
+    .cat-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 4px;
+      font-size: 12px;
+    }
+
+    .cat-table td {
+      padding: 7px 10px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .cat-table td:first-child {
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+      font-weight: 800;
+    }
+
+    .cat-table td:last-child {
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+
+    .cat-table tr.active-row td {
+      background: rgba(255, 0, 127, 0.35);
+      border: 1px solid var(--hot-pink);
+      color: #ffffff;
+      font-weight: 900;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    .disclaimer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    /* ========================================================
+       DOODLE JUMP GAME MODAL
+       ======================================================== */
+    .game-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(10, 0, 24, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 500;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .game-box {
+      background: #17002e;
+      border: 3px solid var(--electric-cyan);
+      border-radius: 20px;
+      padding: 14px;
+      box-shadow: 0 0 35px rgba(0, 240, 255, 0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 380px;
+      width: 100%;
+    }
+
+    .game-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .game-title {
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--cyber-yellow);
+    }
+
+    .btn-close-game {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-weight: 900;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .game-stats {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    #gameCanvas {
+      background: radial-gradient(circle at 50% 50%, #29004f 0%, #110022 100%);
+      border: 2px solid var(--hot-pink);
+      border-radius: 12px;
+      width: 320px;
+      height: 420px;
+      display: block;
+    }
+
+    .mobile-game-controls {
+      display: flex;
+      gap: 16px;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    .btn-mobile-dir {
+      flex: 1;
+      padding: 12px;
+      font-size: 18px;
+      font-weight: 900;
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid var(--electric-cyan);
+      color: var(--electric-cyan);
+      border-radius: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .btn-mobile-dir:active {
+      background: var(--electric-cyan);
+      color: #000;
+    }
+
+    /* ========================================================
+       FULLSCREEN SCREAMER / JUMPSCARE OVERLAY
+       ======================================================== */
+    .jumpscare-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      z-index: 9999;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: screamerStrobe 0.15s infinite;
+    }
+
+    @keyframes screamerStrobe {
+      0% { background: #ff0000; }
+      50% { background: #000000; }
+      100% { background: #ffffff; }
+    }
+
+    .screamer-face {
+      width: 80vw;
+      max-width: 440px;
+      animation: screamerJolt 0.1s infinite;
+    }
+
+    @keyframes screamerJolt {
+      0% { transform: scale(1) rotate(-2deg); }
+      50% { transform: scale(1.15) rotate(3deg); }
+      100% { transform: scale(0.95) rotate(-3deg); }
+    }
+
+    .screamer-text {
+      font-size: 32px;
+      font-weight: 900;
+      color: #ffe600;
+      text-shadow: 0 0 20px #ff0000;
+      text-align: center;
+      margin-top: 14px;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-skip-screamer {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      background: #ffffff;
+      color: #000000;
+      border: 3px solid #ff0000;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: 900;
+      border-radius: 12px;
+      cursor: pointer;
+      z-index: 10000;
+      box-shadow: 0 0 20px #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fullscreen Canvas for Celebration Confetti -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- TikTok Marquee Header -->
+  <div class="marquee-container">
+    <div class="marquee-text">
+      🍓 KATSEYE • "HOOTIE FRUTTI" (EP WILD) 🍉 DANIELA • LARA • MEGAN • SOPHIA • YOONCHAE 🧃 TUNG TUNG TUNG SAHUR 🪵 MAXIMUM BRAINROT DOODLE JUMP EDITION 🎮 +999999 AURA 💀 WHAT THE SIGMA
+    </div>
+  </div>
+
+  <!-- Background Floaters -->
+  <div class="bg-floater f1">🍓</div>
+  <div class="bg-floater f2">🍉</div>
+  <div class="bg-floater f3">🪵</div>
+  <div class="bg-floater f4">✨</div>
+
+  <div class="app-container" id="appContainer">
+    <main class="calculator-card">
+      <header class="title-box">
+        <div class="group-pill">🍓 KATSEYE × HOOTIE FRUTTI 🍉</div>
+        <h1 class="glitch-title">BMI CALCULATOR v5</h1>
+        <div class="track-badge">✨ MAXIMUM BRAINROT × DOODLE JUMP × SAHUR ✨</div>
+        <div class="members-tag">With Daniela • Lara • Megan • Sophia • Yoonchae</div>
+      </header>
+
+      <!-- Doodle Jump Launch Banner -->
+      <div class="game-banner">
+        <div class="game-banner-text">
+          <span>🎮 DOODLE JUMP:</span>
+          <span>Earn your stats & avoid screamers!</span>
+        </div>
+        <button type="button" class="btn-play-game" id="openGameBtn">PLAY & EARN</button>
+      </div>
+
+      <!-- Brainrot Audio Bar (Baile Funk + Tung Tung Tung Sahur) -->
+      <div class="audio-player-bar">
+        <div class="audio-label">
+          <span>🎵</span>
+          <span>FUNK BEAT</span>
+        </div>
+        <div class="beat-visualizer" id="visualizer">
+          <div class="vis-bar"></div>
+          <div class="vis-bar"></div>
+          <div class="vis-bar"></div>
+          <div class="vis-bar"></div>
+          <div class="vis-bar"></div>
+        </div>
+        <button type="button" class="btn-audio" id="musicToggleBtn">▶ PLAY BEAT</button>
+        <button type="button" class="btn-sahur" id="sahurBtn">🔊 TUNG TUNG TUNG SAHUR</button>
+      </div>
+
+      <!-- Functional Form -->
+      <form id="bmiForm" onsubmit="return false;">
+        <div class="form-group">
+          <label for="heightInput">
+            <span>Height</span>
+            <span style="font-size: 12px; font-weight: normal; color: var(--text-muted);">centimeters</span>
+          </label>
+          <div class="input-wrapper">
+            <input type="text" inputmode="decimal" id="heightInput" placeholder="e.g. 175" autocomplete="off">
+            <span class="unit-tag">cm</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="weightInput">
+            <span>Weight</span>
+            <span style="font-size: 12px; font-weight: normal; color: var(--text-muted);">kilograms</span>
+          </label>
+          <div class="input-wrapper">
+            <input type="text" inputmode="decimal" id="weightInput" placeholder="e.g. 68" autocomplete="off">
+            <span class="unit-tag">kg</span>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button type="button" class="btn-main btn-calc" id="calculateBtn">
+            <span>🍉</span> Calculate BMI
+          </button>
+          <button type="button" class="btn-main btn-clear" id="resetBtn">
+            <span>🧹</span> Clear
+          </button>
+        </div>
+      </form>
+
+      <!-- Reachable error message with role="alert" -->
+      <div class="error-box" id="errorBox" role="alert"></div>
+
+      <!-- Brainrot Mascot Aura Commentary -->
+      <div class="aura-panel" id="auraPanel">
+        <div class="aura-emoji" id="auraEmoji">🪵🧃</div>
+        <div class="aura-text-box">
+          <div class="aura-title" id="auraTitle">KATSEYE × TUNG TUNG SQUAD</div>
+          <div class="aura-quote" id="auraQuote">Tung Tung Tung Sahur! Put in your stats or climb the BMI Jump tower! No cap!</div>
+        </div>
+      </div>
+
+      <!-- Results section with aria-live="polite" -->
+      <section class="result-section" id="resultSection" aria-live="polite">
+        <div class="result-header">Body Mass Index Result</div>
+        <div class="bmi-number-hero" id="bmiValue">--</div>
+
+        <div class="badge-center">
+          <span class="category-badge-pill" id="categoryBadge">Normal weight</span>
+        </div>
+
+        <div class="scale-bar-track">
+          <div class="scale-seg seg-underweight" id="segUnderweight" title="Underweight"></div>
+          <div class="scale-seg seg-normal" id="segNormal" title="Normal weight"></div>
+          <div class="scale-seg seg-overweight" id="segOverweight" title="Overweight"></div>
+          <div class="scale-seg seg-obese" id="segObese" title="Obese"></div>
+        </div>
+
+        <div class="scale-labels">
+          <span>&lt;18.5 Underweight</span>
+          <span>18.5–24.9 Normal</span>
+          <span>25.0–29.9 Overweight</span>
+          <span>≥30.0 Obese</span>
+        </div>
+
+        <table class="cat-table">
+          <tbody>
+            <tr id="rowUnderweight">
+              <td><span class="dot" style="background-color: var(--electric-cyan);"></span>&lt; 18.5</td>
+              <td>Underweight</td>
+            </tr>
+            <tr id="rowNormal">
+              <td><span class="dot" style="background-color: var(--acid-green);"></span>18.5 – 24.9</td>
+              <td>Normal weight</td>
+            </tr>
+            <tr id="rowOverweight">
+              <td><span class="dot" style="background-color: var(--cyber-yellow);"></span>25.0 – 29.9</td>
+              <td>Overweight</td>
+            </tr>
+            <tr id="rowObese">
+              <td><span class="dot" style="background-color: var(--hot-pink);"></span>≥ 30.0</td>
+              <td>Obese</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer class="disclaimer">
+        BMI is only an indicator and does not replace a doctor's consultation.
+      </footer>
+    </main>
+  </div>
+
+  <!-- ========================================================
+       DOODLE JUMP MODAL
+       ======================================================== -->
+  <div class="game-modal" id="gameModal">
+    <div class="game-box">
+      <div class="game-header">
+        <div class="game-title">🍓 BMI JUMP (DOODLE STYLE)</div>
+        <button type="button" class="btn-close-game" id="closeGameBtn">✕ CLOSE</button>
+      </div>
+
+      <div class="game-stats">
+        <span>SCORE: <b id="gameScoreEl">0</b></span>
+        <span>BEST: <b id="gameBestEl">0</b></span>
+      </div>
+
+      <canvas id="gameCanvas" width="320" height="420"></canvas>
+
+      <div class="mobile-game-controls">
+        <button type="button" class="btn-mobile-dir" id="btnLeft">◀ LEFT</button>
+        <button type="button" class="btn-mobile-dir" id="btnRight">RIGHT ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       FULLSCREEN SCREAMER / JUMPSCARE OVERLAY
+       ======================================================== -->
+  <div class="jumpscare-overlay" id="jumpscareOverlay">
+    <button type="button" class="btn-skip-screamer" id="skipScreamerBtn">✖ SKIP / CLOSE (ESC)</button>
+
+    <!-- Custom SVG Grotesque Horror Meme Face -->
+    <svg class="screamer-face" viewBox="0 0 300 300">
+      <!-- Glow Filter -->
+      <defs>
+        <radialGradient id="eyeGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffff00"/>
+          <stop offset="70%" stop-color="#ff0000"/>
+          <stop offset="100%" stop-color="#330000"/>
+        </radialGradient>
+      </defs>
+      <!-- Head Base -->
+      <path d="M50 150 C50 60, 250 60, 250 150 C250 240, 210 280, 150 280 C90 280, 50 240, 50 150 Z" fill="#200000" stroke="#ff0000" stroke-width="8"/>
+      <!-- Veins -->
+      <path d="M70 120 Q100 130 110 100 M230 120 Q200 130 190 100 M150 70 Q160 100 150 120" stroke="#ff3333" stroke-width="3" fill="none"/>
+      <!-- Bulging Left Eye -->
+      <circle cx="105" cy="130" r="38" fill="#fff" stroke="#ff0000" stroke-width="4"/>
+      <circle cx="108" cy="132" r="22" fill="url(#eyeGlow)"/>
+      <circle cx="110" cy="134" r="9" fill="#000"/>
+      <!-- Bulging Right Eye -->
+      <circle cx="195" cy="130" r="38" fill="#fff" stroke="#ff0000" stroke-width="4"/>
+      <circle cx="192" cy="132" r="22" fill="url(#eyeGlow)"/>
+      <circle cx="190" cy="134" r="9" fill="#000"/>
+      <!-- Massive Gaping Screaming Mouth -->
+      <path d="M85 190 Q150 160 215 190 Q225 265 150 270 Q75 265 85 190 Z" fill="#000" stroke="#ff0000" stroke-width="6"/>
+      <!-- Sharp Pointy Teeth Top -->
+      <polygon points="95,190 105,205 115,190" fill="#fff"/>
+      <polygon points="120,190 135,210 150,190" fill="#fff"/>
+      <polygon points="155,190 170,210 185,190" fill="#fff"/>
+      <polygon points="190,190 200,205 210,190" fill="#fff"/>
+      <!-- Sharp Teeth Bottom -->
+      <polygon points="110,255 125,238 140,255" fill="#fff"/>
+      <polygon points="155,255 170,238 185,255" fill="#fff"/>
+      <!-- Demon Tongue -->
+      <ellipse cx="150" cy="245" rx="25" ry="15" fill="#990000"/>
+    </svg>
+
+    <div class="screamer-text">⚠️ WHAT THE SIGMA?! GAME OVER! 💀</div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. Web Audio API Master Synthesizers
+    // ==========================================
+    let audioCtx = null;
+    let isPlaying = false;
+    let step = 0;
+    let beatInterval = null;
+
+    const musicToggleBtn = document.getElementById('musicToggleBtn');
+    const sahurBtn = document.getElementById('sahurBtn');
+    const visualizerBars = document.querySelectorAll('.vis-bar');
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    // A. Baile Funk Loop Instruments
+    function playKick(time) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(140, time);
+      osc.frequency.exponentialRampToValueAtTime(32, time + 0.14);
+
+      gain.gain.setValueAtTime(0.35, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.16);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start(time);
+      osc.stop(time + 0.16);
+    }
+
+    function playSnare(time) {
+      if (!audioCtx) return;
+      const bufferSize = audioCtx.sampleRate * 0.08;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.setValueAtTime(1200, time);
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.2, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      noise.start(time);
+      noise.stop(time + 0.08);
+    }
+
+    function playFunkBeep(time, freq) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, time);
+
+      gain.gain.setValueAtTime(0.12, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start(time);
+      osc.stop(time + 0.1);
+    }
+
+    function tickBeat() {
+      if (!isPlaying || !audioCtx) return;
+      const now = audioCtx.currentTime;
+
+      if (step === 0 || step === 8 || step === 10) playKick(now);
+      if (step === 3 || step === 4 || step === 12) playSnare(now);
+      if (step === 2 || step === 6 || step === 14) playFunkBeep(now, step === 14 ? 330 : 260);
+
+      step = (step + 1) % 16;
+    }
+
+    musicToggleBtn.addEventListener('click', () => {
+      initAudio();
+      if (!isPlaying) {
+        isPlaying = true;
+        musicToggleBtn.textContent = '⏹ STOP BEAT';
+        musicToggleBtn.style.background = 'linear-gradient(135deg, #ef4444, #ff007f)';
+        visualizerBars.forEach(bar => bar.classList.add('playing'));
+        step = 0;
+        beatInterval = setInterval(tickBeat, 115);
+      } else {
+        isPlaying = false;
+        clearInterval(beatInterval);
+        musicToggleBtn.textContent = '▶ PLAY BEAT';
+        musicToggleBtn.style.background = 'linear-gradient(135deg, #ffe600, #ff007f)';
+        visualizerBars.forEach(bar => bar.classList.remove('playing'));
+      }
+    });
+
+    // B. "Tung Tung Tung Sahur" Synthesized Woodblock Knock
+    function playWoodKnock(time, pitch) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(pitch, time);
+      osc.frequency.exponentialRampToValueAtTime(140, time + 0.08);
+
+      gain.gain.setValueAtTime(0.45, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.09);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start(time);
+      osc.stop(time + 0.1);
+    }
+
+    function triggerTungTungTung() {
+      initAudio();
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      playWoodKnock(now, 580);
+      playWoodKnock(now + 0.16, 580);
+      playWoodKnock(now + 0.32, 640);
+
+      // UI Reaction
+      const auraEmoji = document.getElementById('auraEmoji');
+      const auraQuote = document.getElementById('auraQuote');
+      auraEmoji.textContent = '🪵🔥';
+      auraQuote.textContent = 'TUNG TUNG TUNG SAHUR! Wake up, the BMI stats are ready!';
+    }
+
+    sahurBtn.addEventListener('click', triggerTungTungTung);
+
+    // C. Synthesized Jumpscare Audio Screech & Blast
+    function playJumpscareSound() {
+      initAudio();
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+
+      // Harsh dissonant FM screech
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const screechGain = audioCtx.createGain();
+
+      osc1.type = 'sawtooth';
+      osc1.frequency.setValueAtTime(750, now);
+      osc1.frequency.linearRampToValueAtTime(2200, now + 0.25);
+      osc1.frequency.exponentialRampToValueAtTime(180, now + 1.2);
+
+      osc2.type = 'square';
+      osc2.frequency.setValueAtTime(790, now);
+      osc2.frequency.linearRampToValueAtTime(2280, now + 0.25);
+      osc2.frequency.exponentialRampToValueAtTime(120, now + 1.2);
+
+      screechGain.gain.setValueAtTime(0.38, now);
+      screechGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+
+      osc1.connect(screechGain);
+      osc2.connect(screechGain);
+      screechGain.connect(audioCtx.destination);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 1.2);
+      osc2.stop(now + 1.2);
+
+      // White noise explosion blast
+      const bufferSize = audioCtx.sampleRate * 0.8;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.2));
+      }
+
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      const noiseGain = audioCtx.createGain();
+      noiseGain.gain.setValueAtTime(0.35, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+      noise.connect(noiseGain);
+      noiseGain.connect(audioCtx.destination);
+      noise.start(now);
+    }
+
+    // ==========================================
+    // 2. Jumpscare Screamer Controller
+    // ==========================================
+    const jumpscareOverlay = document.getElementById('jumpscareOverlay');
+    const skipScreamerBtn = document.getElementById('skipScreamerBtn');
+    let screamerTimeout = null;
+
+    function triggerScreamer() {
+      playJumpscareSound();
+      jumpscareOverlay.style.display = 'flex';
+
+      clearTimeout(screamerTimeout);
+      screamerTimeout = setTimeout(() => {
+        closeScreamer();
+      }, 1800);
+    }
+
+    function closeScreamer() {
+      jumpscareOverlay.style.display = 'none';
+      clearTimeout(screamerTimeout);
+    }
+
+    skipScreamerBtn.addEventListener('click', closeScreamer);
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeScreamer();
+    });
+
+    // ==========================================
+    // 3. Confetti Celebration Burst Engine
+    // ==========================================
+    const confettiCanvas = document.getElementById('confettiCanvas');
+    const confettiCtx = confettiCanvas.getContext('2d');
+    let confettiParticles = [];
+    let confettiAnimId = null;
+
+    function resizeConfetti() {
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeConfetti);
+    resizeConfetti();
+
+    function triggerConfetti() {
+      confettiParticles = [];
+      const colors = ['#ff007f', '#ffe600', '#39ff14', '#00f0ff', '#ffffff'];
+      for (let i = 0; i < 75; i++) {
+        confettiParticles.push({
+          x: confettiCanvas.width / 2,
+          y: confettiCanvas.height / 2,
+          vx: (Math.random() - 0.5) * 16,
+          vy: (Math.random() - 0.5) * 16 - 3,
+          size: Math.random() * 8 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          rotSpeed: (Math.random() - 0.5) * 10,
+          alpha: 1,
+          decay: Math.random() * 0.02 + 0.012
+        });
+      }
+      if (!confettiAnimId) updateConfetti();
+    }
+
+    function updateConfetti() {
+      confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      confettiParticles.forEach((p, index) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.25;
+        p.rotation += p.rotSpeed;
+        p.alpha -= p.decay;
+
+        confettiCtx.save();
+        confettiCtx.globalAlpha = Math.max(0, p.alpha);
+        confettiCtx.fillStyle = p.color;
+        confettiCtx.translate(p.x, p.y);
+        confettiCtx.rotate((p.rotation * Math.PI) / 180);
+        confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+        confettiCtx.restore();
+
+        if (p.alpha <= 0) confettiParticles.splice(index, 1);
+      });
+
+      if (confettiParticles.length > 0) {
+        confettiAnimId = requestAnimationFrame(updateConfetti);
+      } else {
+        cancelAnimationFrame(confettiAnimId);
+        confettiAnimId = null;
+        confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      }
+    }
+
+    // ==========================================
+    // 4. BMI Functional Core Logic (Strict Preserved)
+    // ==========================================
+    const appContainer = document.getElementById('appContainer');
+    const heightInput = document.getElementById('heightInput');
+    const weightInput = document.getElementById('weightInput');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const errorBox = document.getElementById('errorBox');
+    const resultSection = document.getElementById('resultSection');
+    const bmiValueEl = document.getElementById('bmiValue');
+    const categoryBadgeEl = document.getElementById('categoryBadge');
+
+    const auraEmoji = document.getElementById('auraEmoji');
+    const auraTitle = document.getElementById('auraTitle');
+    const auraQuote = document.getElementById('auraQuote');
+
+    const segments = {
+      underweight: document.getElementById('segUnderweight'),
+      normal: document.getElementById('segNormal'),
+      overweight: document.getElementById('segOverweight'),
+      obese: document.getElementById('segObese')
+    };
+
+    const rows = {
+      underweight: document.getElementById('rowUnderweight'),
+      normal: document.getElementById('rowNormal'),
+      overweight: document.getElementById('rowOverweight'),
+      obese: document.getElementById('rowObese')
+    };
+
+    function showError(message) {
+      errorBox.textContent = message;
+      errorBox.style.display = 'block';
+      resultSection.style.display = 'none';
+
+      appContainer.classList.remove('screen-shake');
+      void appContainer.offsetWidth;
+      appContainer.classList.add('screen-shake');
+
+      auraEmoji.textContent = '💀🧢';
+      auraTitle.textContent = 'L RIZZ DETECTED (INVALID INPUT)';
+      auraQuote.textContent = "Daniela & Megan say that's not it, bestie! Enter valid numbers to get your aura back!";
+
+      // 10% random jumpscare chance on error
+      if (Math.random() < 0.10) {
+        setTimeout(triggerScreamer, 300);
+      }
+    }
+
+    function clearError() {
+      errorBox.textContent = '';
+      errorBox.style.display = 'none';
+      appContainer.classList.remove('screen-shake');
+    }
+
+    function calculateBMI() {
+      clearError();
+
+      const heightRaw = heightInput.value.trim();
+      const weightRaw = weightInput.value.trim();
+
+      // 1. Check for empty fields
+      if (!heightRaw || !weightRaw) {
+        showError('Please fill in both fields: enter your height and weight.');
+        return;
+      }
+
+      const normalizedHeight = heightRaw.replace(',', '.');
+      const normalizedWeight = weightRaw.replace(',', '.');
+
+      const heightCm = Number(normalizedHeight);
+      const weightKg = Number(normalizedWeight);
+
+      // 2. Check for non-numeric input
+      if (isNaN(heightCm) || isNaN(weightKg) || !isFinite(heightCm) || !isFinite(weightKg)) {
+        showError('Please enter valid numerical values.');
+        return;
+      }
+
+      // 3. Check for non-positive input
+      if (heightCm <= 0 || weightKg <= 0) {
+        showError('Height and weight must be strictly greater than zero.');
+        return;
+      }
+
+      // 4. Realistic ranges validation
+      if (heightCm < 30 || heightCm > 300) {
+        showError('Please enter a realistic height (30 to 300 cm).');
+        return;
+      }
+
+      if (weightKg < 2 || weightKg > 600) {
+        showError('Please enter a realistic weight (2 to 600 kg).');
+        return;
+      }
+
+      // Exact Formula: kg / (m^2)
+      const heightM = heightCm / 100;
+      const rawBmi = weightKg / (heightM * heightM);
+
+      // Categorization strictly based on UNROUNDED BMI
+      let category = '';
+      let color = '';
+      let categoryKey = '';
+      let emoji = '';
+      let auraTag = '';
+      let quote = '';
+
+      if (rawBmi < 18.5) {
+        category = 'Underweight';
+        color = 'var(--electric-cyan)';
+        categoryKey = 'underweight';
+        emoji = '🍓🧃';
+        auraTag = 'FRUITY FEATHERWEIGHT AURA';
+        quote = 'Yoonchae says: "Sweet like strawberries! Grab a delicious snack & keep serving looks!"';
+      } else if (rawBmi < 25.0) {
+        category = 'Normal weight';
+        color = 'var(--acid-green)';
+        categoryKey = 'normal';
+        emoji = '🍉💅✨';
+        auraTag = '+1,000,000 AURA • CERTIFIED SLAY';
+        quote = 'Sophia & Lara say: "Absolute main character energy! In tip-top balance, no cap!"';
+      } else if (rawBmi < 30.0) {
+        category = 'Overweight';
+        color = 'var(--cyber-yellow)';
+        categoryKey = 'overweight';
+        emoji = '🥭🔥🕶️';
+        auraTag = 'EXTRA JUICY SIGMA STRENGTH';
+        quote = 'Megan & Daniela say: "Fierce & powerful presence! Hit the dance floor to Hootie Frutti!"';
+      } else {
+        category = 'Obese';
+        color = 'var(--hot-pink)';
+        categoryKey = 'obese';
+        emoji = '💥👑🧃';
+        auraTag = 'MAXIMUM BOSS BADDIE POWER';
+        quote = 'KATSEYE says: "Major power! Time to blast the beat, learn the choreo, and thrive!"';
+      }
+
+      // Round strictly for display (1 decimal place)
+      const roundedBmi = parseFloat(rawBmi.toFixed(1));
+      bmiValueEl.textContent = roundedBmi.toFixed(1);
+
+      categoryBadgeEl.textContent = category;
+      categoryBadgeEl.style.backgroundColor = color;
+
+      auraEmoji.textContent = emoji;
+      auraTitle.textContent = auraTag;
+      auraQuote.textContent = quote;
+
+      Object.keys(segments).forEach(key => {
+        segments[key].classList.toggle('active', key === categoryKey);
+      });
+
+      Object.keys(rows).forEach(key => {
+        rows[key].classList.toggle('active-row', key === categoryKey);
+      });
+
+      resultSection.style.display = 'block';
+      triggerConfetti();
+    }
+
+    function resetForm() {
+      heightInput.value = '';
+      weightInput.value = '';
+      clearError();
+      resultSection.style.display = 'none';
+
+      auraEmoji.textContent = '🪵🧃';
+      auraTitle.textContent = 'KATSEYE × TUNG TUNG SQUAD';
+      auraQuote.textContent = 'Tung Tung Tung Sahur! Put in your stats or climb the BMI Jump tower! No cap!';
+
+      heightInput.focus();
+    }
+
+    calculateBtn.addEventListener('click', calculateBMI);
+    resetBtn.addEventListener('click', resetForm);
+
+    [heightInput, weightInput].forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') calculateBMI();
+      });
+    });
+
+    // ==========================================
+    // 5. Doodle Jump Mini-Game Engine
+    // ==========================================
+    const openGameBtn = document.getElementById('openGameBtn');
+    const closeGameBtn = document.getElementById('closeGameBtn');
+    const gameModal = document.getElementById('gameModal');
+    const gameCanvas = document.getElementById('gameCanvas');
+    const gameCtx = gameCanvas.getContext('2d');
+    const gameScoreEl = document.getElementById('gameScoreEl');
+    const gameBestEl = document.getElementById('gameBestEl');
+
+    const btnLeft = document.getElementById('btnLeft');
+    const btnRight = document.getElementById('btnRight');
+
+    let gameLoopId = null;
+    let score = 0;
+    let bestScore = parseInt(localStorage.getItem('bmi_jump_best') || '0', 10);
+    gameBestEl.textContent = bestScore;
+
+    // Player State
+    const player = {
+      x: 145,
+      y: 300,
+      width: 28,
+      height: 28,
+      vx: 0,
+      vy: 0,
+      jumpStrength: -9.5
+    };
+
+    // Platforms
+    let platforms = [];
+    const PLATFORM_COUNT = 7;
+
+    function initGame() {
+      score = 0;
+      gameScoreEl.textContent = '0';
+      player.x = 145;
+      player.y = 300;
+      player.vx = 0;
+      player.vy = player.jumpStrength;
+
+      platforms = [];
+      // Starting platform directly under player
+      platforms.push({ x: 130, y: 350, width: 65, height: 10, type: 'normal' });
+
+      for (let i = 1; i < PLATFORM_COUNT; i++) {
+        const rand = Math.random();
+        let type = 'normal';
+        if (rand < 0.20) type = 'fruit';   // 🍓 Boost jump
+        else if (rand < 0.35) type = 'star'; // ⭐ Mega jump
+        else if (rand < 0.45) type = 'break'; // ❌ Disappearing
+
+        platforms.push({
+          x: Math.random() * (gameCanvas.width - 65),
+          y: 420 - i * 60,
+          width: 65,
+          height: 10,
+          type: type,
+          broken: false
+        });
+      }
+    }
+
+    let keys = { left: false, right: false };
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
+    });
+
+    btnLeft.addEventListener('pointerdown', () => keys.left = true);
+    btnLeft.addEventListener('pointerup', () => keys.left = false);
+    btnLeft.addEventListener('pointerleave', () => keys.left = false);
+
+    btnRight.addEventListener('pointerdown', () => keys.right = true);
+    btnRight.addEventListener('pointerup', () => keys.right = false);
+    btnRight.addEventListener('pointerleave', () => keys.right = false);
+
+    function updateGame() {
+      // Movement
+      if (keys.left) player.vx = -4.2;
+      else if (keys.right) player.vx = 4.2;
+      else player.vx *= 0.8;
+
+      player.x += player.vx;
+      player.vy += 0.35; // Gravity
+      player.y += player.vy;
+
+      // Wrap around canvas edges
+      if (player.x < -player.width) player.x = gameCanvas.width;
+      if (player.x > gameCanvas.width) player.x = -player.width;
+
+      // Platform Bouncing (only when falling downwards)
+      if (player.vy > 0) {
+        platforms.forEach(p => {
+          if (
+            !p.broken &&
+            player.x + player.width > p.x &&
+            player.x < p.x + p.width &&
+            player.y + player.height >= p.y &&
+            player.y + player.height <= p.y + 14
+          ) {
+            if (p.type === 'normal') {
+              player.vy = player.jumpStrength;
+            } else if (p.type === 'fruit') {
+              player.vy = -12.5; // Strawberry boost
+              score += 5;
+            } else if (p.type === 'star') {
+              player.vy = -16.0; // Mega star jump
+              score += 10;
+            } else if (p.type === 'break') {
+              player.vy = player.jumpStrength;
+              p.broken = true; // Breaks on touch
+            }
+          }
+        });
+      }
+
+      // Camera Scrolling Upwards
+      if (player.y < 200) {
+        const diff = 200 - player.y;
+        player.y = 200;
+        score += Math.floor(diff / 4);
+        gameScoreEl.textContent = score;
+
+        platforms.forEach(p => {
+          p.y += diff;
+          if (p.y > gameCanvas.height) {
+            p.y = 0;
+            p.x = Math.random() * (gameCanvas.width - 65);
+            p.broken = false;
+            const r = Math.random();
+            if (r < 0.20) p.type = 'fruit';
+            else if (r < 0.35) p.type = 'star';
+            else if (r < 0.45) p.type = 'break';
+            else p.type = 'normal';
+          }
+        });
+      }
+
+      // Game Over Check
+      if (player.y > gameCanvas.height + 40) {
+        cancelAnimationFrame(gameLoopId);
+        gameLoopId = null;
+
+        if (score > bestScore) {
+          bestScore = score;
+          localStorage.setItem('bmi_jump_best', bestScore);
+          gameBestEl.textContent = bestScore;
+        }
+
+        // TRIGGER JUMPSCARE SCREAMER!
+        triggerScreamer();
+
+        // Check if BMI is calculated
+        if (bmiValueEl.textContent !== '--') {
+          auraQuote.textContent = `Game Over! You jumped ${score} floors with BMI ${bmiValueEl.textContent} (${categoryBadgeEl.textContent})!`;
+        }
+        return;
+      }
+
+      // Drawing
+      gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+      // Draw Platforms
+      platforms.forEach(p => {
+        if (p.broken) return;
+
+        if (p.type === 'normal') {
+          gameCtx.fillStyle = '#10b981';
+          gameCtx.fillRect(p.x, p.y, p.width, p.height);
+          gameCtx.strokeStyle = '#34d399';
+          gameCtx.strokeRect(p.x, p.y, p.width, p.height);
+        } else if (p.type === 'fruit') {
+          gameCtx.fillStyle = '#ff007f';
+          gameCtx.fillRect(p.x, p.y, p.width, p.height);
+          gameCtx.font = '10px sans-serif';
+          gameCtx.fillText('🍓 BOOST', p.x + 6, p.y + 8);
+        } else if (p.type === 'star') {
+          gameCtx.fillStyle = '#ffe600';
+          gameCtx.fillRect(p.x, p.y, p.width, p.height);
+          gameCtx.font = '10px sans-serif';
+          gameCtx.fillStyle = '#000';
+          gameCtx.fillText('⭐ MEGA', p.x + 8, p.y + 8);
+        } else if (p.type === 'break') {
+          gameCtx.fillStyle = '#64748b';
+          gameCtx.fillRect(p.x, p.y, p.width, p.height);
+          gameCtx.strokeStyle = '#ef4444';
+          gameCtx.strokeRect(p.x, p.y, p.width, p.height);
+        }
+      });
+
+      // Draw Player Character (Cute Katseye Strawberry Cat)
+      gameCtx.save();
+      gameCtx.translate(player.x + player.width / 2, player.y + player.height / 2);
+      gameCtx.font = '26px sans-serif';
+      gameCtx.textAlign = 'center';
+      gameCtx.textBaseline = 'middle';
+      gameCtx.fillText('🐱🍓', 0, 0);
+      gameCtx.restore();
+
+      gameLoopId = requestAnimationFrame(updateGame);
+    }
+
+    openGameBtn.addEventListener('click', () => {
+      initAudio();
+      gameModal.style.display = 'flex';
+      initGame();
+      if (!gameLoopId) gameLoopId = requestAnimationFrame(updateGame);
+    });
+
+    closeGameBtn.addEventListener('click', () => {
+      gameModal.style.display = 'none';
+      if (gameLoopId) {
+        cancelAnimationFrame(gameLoopId);
+        gameLoopId = null;
+      }
+    });
+  </script>
+</body>
+</html>
