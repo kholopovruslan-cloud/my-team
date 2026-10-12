@@ -1,0 +1,1135 @@
+> **Handoff / Передача**: Built v4 BMI Calculator in maximum brainrot aesthetic themed after KATSEYE's "Hootie Frutti" with synthesized Web Audio API Baile Funk beat and confetti engine, while strictly preserving all v3 core calculation and error handling logic; test boundary classifications (24.96 -> Normal weight, 25.0 -> Overweight, "abc" -> not a number message) and the interactive music toggle; completely ready for browser use.
+
+# Task Completion: BMI Calculator v4 (KATSEYE «Hootie Frutti» × Maximum Brainrot)
+
+- **From:** 队员 · 太鲁阁 (Member · Taroko)
+- **To:** 领队 · 洄澜 (Leader · Wailan) / 小队长 (Captain)
+- **Date:** 2026-10-12
+- **Basis:** `workspace/inbox/20261012-bmi-calculator-v4-katseye-brainrot.md`
+- **New Standalone File:** `workspace/outbox/bmi-calculator-v4.html`
+- **Preserved Previous Versions:** `v1`, `v2`, `v3` in `workspace/outbox/` remain untouched.
+
+---
+
+## Implemented Features in v4
+
+1. **Maximum Brainrot Design & Aesthetics:**
+   - **Glitch & Neon styling**: Cyberpunk palette with neon pink (`#ff007f`), cyber yellow (`#ffe600`), acid green (`#39ff14`), and electric cyan (`#00f0ff`).
+   - **TikTok-style Marquee Header**: Smooth continuous scrolling text banner with fruit emojis, group member shoutouts, and brainrot slogans.
+   - **Interactive Confetti Celebration**: Canvas particle burst triggers upon successful BMI calculation.
+   - **Card Shake**: Dynamic shake animation triggers when validation fails.
+   - **Meme Aura Panel**: Reactive hype squad commentary tailored to each BMI category (+1,000,000 Aura, Certified Slay, No Cap).
+   - **Clear and accessible functional controls**: Labels, error messages, and inputs remain crisp, high contrast, and completely legible.
+
+2. **KATSEYE / «Hootie Frutti» Theme:**
+   - Accurate track title representation: **«Hootie Frutti»** (EP *WILD*, HYBE UMG / Geffen).
+   - Tropical fruit motif (🍓🍉🧃) inspired by the single.
+   - Text shoutouts to the group members: **Daniela, Lara, Megan, Sophia, Yoonchae**.
+   - Zero copyrighted audio files or brand logos used.
+
+3. **Synthesized Web Audio API Baile Funk Loop:**
+   - Self-contained in JavaScript without external `.mp3` dependencies.
+   - High-energy Brazilian funk / baile funk rhythm (~130 BPM):
+     - Punchy sub kick
+     - Filtered noise rimshot / snare snap
+     - Syncopated funk bleeps
+   - User-controlled toggle button (`▶ PLAY BEAT` / `⏹ STOP BEAT`) with dancing equalizer visualizer bars.
+   - Safe, moderate volume level.
+
+4. **Zero-Regression Functional Core (from v2 & v3):**
+   - Category evaluated strictly on **unrounded raw BMI**:
+     - `< 18.5`: **Underweight**
+     - `18.5 – 24.9`: **Normal weight** (`rawBmi < 25.0`, so `24.96` is *Normal weight*)
+     - `25.0 – 29.9`: **Overweight** (`25.00` and `29.96` are *Overweight*)
+     - `≥ 30.0`: **Obese** (`30.00` is *Obese*)
+   - Display rounded to 1 decimal place (`.toFixed(1)`).
+   - Text inputs with `inputmode="decimal"` and dot/comma normalization.
+   - Reachable, separate error messages:
+     - Empty fields: `"Please fill in both fields: enter your height and weight."`
+     - Non-numeric input (e.g. `"abc"`): `"Please enter valid numerical values."`
+     - Non-positive numbers (`<= 0`): `"Height and weight must be strictly greater than zero."`
+     - Realistic bounds checks (30–300 cm, 2–600 kg).
+   - Accessibility: `aria-live="polite"` on results section, `role="alert"` on error box.
+   - Medical disclaimer: *"BMI is only an indicator and does not replace a doctor's consultation."*
+
+---
+
+## Full Source Code (`bmi-calculator-v4.html`)
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KATSEYE: Hootie Frutti BMI Calculator (Brainrot Edition)</title>
+  <style>
+    :root {
+      --neon-pink: #ff1493;
+      --hot-pink: #ff007f;
+      --acid-green: #39ff14;
+      --cyber-yellow: #ffe600;
+      --electric-cyan: #00f0ff;
+      --deep-purple: #1e0836;
+      --card-bg: rgba(22, 6, 40, 0.92);
+      --card-border: #ff007f;
+      --text-bright: #ffffff;
+      --text-muted: #e2d9f3;
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Comic Sans MS", cursive, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #18002e 0%, #3a005f 50%, #10001f 100%);
+      color: var(--text-bright);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 14px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Fullscreen celebration confetti canvas */
+    #confettiCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    /* TikTok Marquee Header */
+    .marquee-container {
+      width: 100%;
+      background: linear-gradient(90deg, #ff007f, #ffe600, #39ff14, #00f0ff, #ff007f);
+      background-size: 300% 100%;
+      animation: gradientShift 6s infinite linear;
+      padding: 6px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 50;
+      box-shadow: 0 4px 15px rgba(255, 0, 127, 0.4);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
+    }
+
+    .marquee-text {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 900;
+      color: #000;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      animation: marqueeScroll 18s linear infinite;
+    }
+
+    @keyframes marqueeScroll {
+      0% { transform: translateX(100vw); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* Floating background meme badges */
+    .bg-floater {
+      position: fixed;
+      font-size: 28px;
+      opacity: 0.35;
+      pointer-events: none;
+      z-index: 0;
+      animation: floatBadge 8s infinite ease-in-out alternate;
+    }
+
+    .f1 { top: 12%; left: 6%; animation-duration: 7s; }
+    .f2 { top: 18%; right: 8%; animation-duration: 9s; }
+    .f3 { bottom: 15%; left: 8%; animation-duration: 6s; }
+    .f4 { bottom: 12%; right: 6%; animation-duration: 10s; }
+
+    @keyframes floatBadge {
+      0% { transform: translateY(0) rotate(0deg) scale(0.9); }
+      100% { transform: translateY(-20px) rotate(15deg) scale(1.1); }
+    }
+
+    /* Main Container Card */
+    .card-wrap {
+      margin-top: 36px;
+      width: 100%;
+      max-width: 500px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .calculator-card {
+      background: var(--card-bg);
+      border: 3px solid var(--card-border);
+      border-radius: var(--radius);
+      box-shadow: 0 0 25px rgba(255, 0, 127, 0.4), 0 0 50px rgba(0, 240, 255, 0.2);
+      padding: 30px 24px;
+      backdrop-filter: blur(14px);
+      position: relative;
+    }
+
+    /* Glitch Title */
+    .title-box {
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .group-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #ff007f;
+      color: #ffffff;
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      box-shadow: 0 0 10px #ff007f;
+      margin-bottom: 8px;
+    }
+
+    h1.glitch-title {
+      font-size: 27px;
+      font-weight: 900;
+      color: var(--cyber-yellow);
+      text-transform: uppercase;
+      text-shadow: 2px 2px #ff007f, -2px -2px #00f0ff;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+
+    .track-badge {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--acid-green);
+      letter-spacing: 0.05em;
+    }
+
+    .members-tag {
+      font-size: 11px;
+      color: #cbd5e1;
+      margin-top: 4px;
+    }
+
+    /* Funk Beat Player Bar */
+    .audio-player-bar {
+      margin: 16px 0 20px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1.5px solid rgba(255, 230, 0, 0.6);
+      border-radius: 14px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .audio-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--cyber-yellow);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .beat-visualizer {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 18px;
+    }
+
+    .vis-bar {
+      width: 4px;
+      background: var(--acid-green);
+      height: 4px;
+      border-radius: 2px;
+      transition: height 0.1s ease;
+    }
+
+    .vis-bar.playing {
+      animation: jumpBar 0.35s infinite alternate ease-in-out;
+    }
+    .vis-bar:nth-child(1) { animation-delay: 0.05s; }
+    .vis-bar:nth-child(2) { animation-delay: 0.15s; }
+    .vis-bar:nth-child(3) { animation-delay: 0.25s; }
+    .vis-bar:nth-child(4) { animation-delay: 0.1s; }
+    .vis-bar:nth-child(5) { animation-delay: 0.2s; }
+
+    @keyframes jumpBar {
+      0% { height: 3px; background: var(--acid-green); }
+      100% { height: 18px; background: var(--hot-pink); }
+    }
+
+    .btn-audio {
+      background: linear-gradient(135deg, #ffe600, #ff007f);
+      color: #000;
+      border: none;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 900;
+      border-radius: 999px;
+      cursor: pointer;
+      text-transform: uppercase;
+      box-shadow: 0 0 8px rgba(255, 0, 127, 0.6);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    .btn-audio:active {
+      transform: scale(0.95);
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      color: #ffffff;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 13px 52px 13px 16px;
+      font-size: 16px;
+      font-weight: 700;
+      border: 2px solid #a855f7;
+      border-radius: 14px;
+      outline: none;
+      background: rgba(15, 3, 29, 0.85);
+      color: #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--electric-cyan);
+      box-shadow: 0 0 12px var(--electric-cyan);
+    }
+
+    .unit-tag {
+      position: absolute;
+      right: 14px;
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--cyber-yellow);
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 8px;
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    /* Action Buttons */
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    button.btn-main {
+      padding: 14px 18px;
+      font-size: 15px;
+      font-weight: 900;
+      border-radius: 14px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: none;
+    }
+
+    .btn-calc {
+      flex: 2;
+      background: linear-gradient(135deg, #39ff14 0%, #00f0ff 100%);
+      color: #000;
+      box-shadow: 0 0 15px rgba(57, 255, 20, 0.5);
+    }
+
+    .btn-calc:hover {
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.8);
+      transform: translateY(-2px);
+    }
+
+    .btn-calc:active {
+      transform: scale(0.97);
+    }
+
+    .btn-clear {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-clear:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Error Box with Shake */
+    .error-box {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: rgba(239, 68, 68, 0.25);
+      border: 2px solid #ef4444;
+      border-radius: 12px;
+      color: #fecaca;
+      font-size: 14px;
+      font-weight: 700;
+      display: none;
+      line-height: 1.4;
+    }
+
+    .screen-shake {
+      animation: hardShake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    @keyframes hardShake {
+      10%, 90% { transform: translate3d(-3px, 0, 0); }
+      20%, 80% { transform: translate3d(5px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+      40%, 60% { transform: translate3d(6px, 0, 0); }
+    }
+
+    /* Brainrot Aura / Mascot Panel */
+    .aura-panel {
+      margin-top: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px dashed rgba(255, 0, 127, 0.6);
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .aura-emoji {
+      font-size: 38px;
+      min-width: 48px;
+      text-align: center;
+      animation: pulseEmoji 1.5s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulseEmoji {
+      0% { transform: scale(0.95) rotate(-5deg); }
+      100% { transform: scale(1.1) rotate(5deg); }
+    }
+
+    .aura-text-box {
+      flex: 1;
+    }
+
+    .aura-title {
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--cyber-yellow);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .aura-quote {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f1f5f9;
+      line-height: 1.4;
+      margin-top: 2px;
+    }
+
+    /* Result Section */
+    .result-section {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 2px solid rgba(255, 255, 255, 0.15);
+      display: none;
+      animation: zoomInResult 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes zoomInResult {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .result-header {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--electric-cyan);
+    }
+
+    .bmi-number-hero {
+      font-size: 52px;
+      font-weight: 900;
+      text-align: center;
+      line-height: 1;
+      color: #ffffff;
+      text-shadow: 0 0 20px var(--hot-pink), 0 0 35px var(--electric-cyan);
+      margin: 6px 0;
+    }
+
+    .badge-center {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .category-badge-pill {
+      display: inline-block;
+      padding: 6px 18px;
+      font-size: 15px;
+      font-weight: 900;
+      border-radius: 999px;
+      color: #000;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      box-shadow: 0 0 15px currentColor;
+    }
+
+    /* Neon Scale Bar */
+    .scale-bar-track {
+      display: flex;
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 14px 0 8px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .scale-seg {
+      flex: 1;
+      opacity: 0.3;
+      transition: all 0.3s ease;
+    }
+
+    .scale-seg.active {
+      opacity: 1;
+      filter: brightness(1.3);
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    .seg-underweight { background-color: var(--electric-cyan); color: var(--electric-cyan); }
+    .seg-normal { background-color: var(--acid-green); color: var(--acid-green); }
+    .seg-overweight { background-color: var(--cyber-yellow); color: var(--cyber-yellow); }
+    .seg-obese { background-color: var(--hot-pink); color: var(--hot-pink); }
+
+    .scale-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 800;
+      color: #94a3b8;
+      margin-bottom: 12px;
+    }
+
+    /* Table */
+    .cat-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 4px;
+      font-size: 12px;
+    }
+
+    .cat-table td {
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .cat-table td:first-child {
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+      font-weight: 800;
+    }
+
+    .cat-table td:last-child {
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+
+    .cat-table tr.active-row td {
+      background: rgba(255, 0, 127, 0.35);
+      border: 1px solid var(--hot-pink);
+      color: #ffffff;
+      font-weight: 900;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    /* Disclaimer */
+    .disclaimer {
+      margin-top: 22px;
+      text-align: center;
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Confetti Canvas -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Marquee TikTok Bar -->
+  <div class="marquee-container">
+    <div class="marquee-text">
+      🍓 KATSEYE • "HOOTIE FRUTTI" (EP WILD) 🍉 DANIELA • LARA • MEGAN • SOPHIA • YOONCHAE 🧃 MAXIMUM BRAINROT BMI CALCULATOR 🔥 +1000000 AURA NO CAP 🕶️ IT'S GIVING HEALTHY SLAY 💅 SKIBIDI GYATT WELLNESS
+    </div>
+  </div>
+
+  <!-- Background Floaters -->
+  <div class="bg-floater f1">🍓</div>
+  <div class="bg-floater f2">🍉</div>
+  <div class="bg-floater f3">🧃</div>
+  <div class="bg-floater f4">✨</div>
+
+  <div class="card-wrap" id="cardWrap">
+    <main class="calculator-card">
+      <header class="title-box">
+        <div class="group-pill">🍓 KATSEYE × HOOTIE FRUTTI 🍉</div>
+        <h1 class="glitch-title">BMI CALCULATOR</h1>
+        <div class="track-badge">✨ MAXIMUM BRAINROT EDITION ✨</div>
+        <div class="members-tag">With Daniela • Lara • Megan • Sophia • Yoonchae</div>
+      </header>
+
+      <!-- Web Audio API Baile Funk Player -->
+      <div class="audio-player-bar">
+        <div class="audio-label">
+          <span>🎵</span>
+          <span>FUNK BEAT TUNE</span>
+        </div>
+        <div class="beat-visualizer" id="visualizer">
+          <div class="vis-bar"></div>
+          <div class="vis-bar"></div>
+          <div class="vis-bar"></div>
+          <div class="vis-bar"></div>
+          <div class="vis-bar"></div>
+        </div>
+        <button type="button" class="btn-audio" id="musicToggleBtn">▶ PLAY BEAT</button>
+      </div>
+
+      <!-- Functional Form -->
+      <form id="bmiForm" onsubmit="return false;">
+        <div class="form-group">
+          <label for="heightInput">
+            <span>Height</span>
+            <span style="font-size: 12px; font-weight: normal; color: var(--text-muted);">centimeters</span>
+          </label>
+          <div class="input-wrapper">
+            <input type="text" inputmode="decimal" id="heightInput" placeholder="e.g. 175" autocomplete="off">
+            <span class="unit-tag">cm</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="weightInput">
+            <span>Weight</span>
+            <span style="font-size: 12px; font-weight: normal; color: var(--text-muted);">kilograms</span>
+          </label>
+          <div class="input-wrapper">
+            <input type="text" inputmode="decimal" id="weightInput" placeholder="e.g. 68" autocomplete="off">
+            <span class="unit-tag">kg</span>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button type="button" class="btn-main btn-calc" id="calculateBtn">
+            <span>🍉</span> Calculate BMI
+          </button>
+          <button type="button" class="btn-main btn-clear" id="resetBtn">
+            <span>🧹</span> Clear
+          </button>
+        </div>
+      </form>
+
+      <!-- Reachable error message with role="alert" -->
+      <div class="error-box" id="errorBox" role="alert"></div>
+
+      <!-- Brainrot Mascot Aura Commentary -->
+      <div class="aura-panel" id="auraPanel">
+        <div class="aura-emoji" id="auraEmoji">💅🧃</div>
+        <div class="aura-text-box">
+          <div class="aura-title" id="auraTitle">KATSEYE HYPE SQUAD</div>
+          <div class="aura-quote" id="auraQuote">Drop your stats to calculate your Hootie Frutti aura level! No cap!</div>
+        </div>
+      </div>
+
+      <!-- Results section with aria-live="polite" -->
+      <section class="result-section" id="resultSection" aria-live="polite">
+        <div class="result-header">Body Mass Index Result</div>
+        <div class="bmi-number-hero" id="bmiValue">--</div>
+
+        <div class="badge-center">
+          <span class="category-badge-pill" id="categoryBadge">Normal weight</span>
+        </div>
+
+        <div class="scale-bar-track">
+          <div class="scale-seg seg-underweight" id="segUnderweight" title="Underweight"></div>
+          <div class="scale-seg seg-normal" id="segNormal" title="Normal weight"></div>
+          <div class="scale-seg seg-overweight" id="segOverweight" title="Overweight"></div>
+          <div class="scale-seg seg-obese" id="segObese" title="Obese"></div>
+        </div>
+
+        <div class="scale-labels">
+          <span>&lt;18.5 Underweight</span>
+          <span>18.5–24.9 Normal</span>
+          <span>25.0–29.9 Overweight</span>
+          <span>≥30.0 Obese</span>
+        </div>
+
+        <table class="cat-table">
+          <tbody>
+            <tr id="rowUnderweight">
+              <td><span class="dot" style="background-color: var(--electric-cyan);"></span>&lt; 18.5</td>
+              <td>Underweight</td>
+            </tr>
+            <tr id="rowNormal">
+              <td><span class="dot" style="background-color: var(--acid-green);"></span>18.5 – 24.9</td>
+              <td>Normal weight</td>
+            </tr>
+            <tr id="rowOverweight">
+              <td><span class="dot" style="background-color: var(--cyber-yellow);"></span>25.0 – 29.9</td>
+              <td>Overweight</td>
+            </tr>
+            <tr id="rowObese">
+              <td><span class="dot" style="background-color: var(--hot-pink);"></span>≥ 30.0</td>
+              <td>Obese</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer class="disclaimer">
+        BMI is only an indicator and does not replace a doctor's consultation.
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. Web Audio API Baile Funk Synthesizer
+    // ==========================================
+    let audioCtx = null;
+    let isPlaying = false;
+    let step = 0;
+    let beatInterval = null;
+
+    const musicToggleBtn = document.getElementById('musicToggleBtn');
+    const visualizerBars = document.querySelectorAll('.vis-bar');
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playKick(time) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(140, time);
+      osc.frequency.exponentialRampToValueAtTime(32, time + 0.14);
+
+      gain.gain.setValueAtTime(0.35, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.16);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start(time);
+      osc.stop(time + 0.16);
+    }
+
+    function playSnare(time) {
+      if (!audioCtx) return;
+      // Filtered noise snap
+      const bufferSize = audioCtx.sampleRate * 0.08;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.setValueAtTime(1200, time);
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.2, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      noise.start(time);
+      noise.stop(time + 0.08);
+    }
+
+    function playFunkBeep(time, freq) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, time);
+
+      gain.gain.setValueAtTime(0.12, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start(time);
+      osc.stop(time + 0.1);
+    }
+
+    // 16-step Baile Funk style groove loop at ~130 BPM (115ms per 16th step)
+    function tickBeat() {
+      if (!isPlaying || !audioCtx) return;
+      const now = audioCtx.currentTime;
+
+      // Brazilian Funk Tamborzão rhythm pattern
+      if (step === 0 || step === 8 || step === 10) {
+        playKick(now);
+      }
+      if (step === 3 || step === 4 || step === 12) {
+        playSnare(now);
+      }
+      if (step === 2 || step === 6 || step === 14) {
+        playFunkBeep(now, step === 14 ? 330 : 260);
+      }
+
+      step = (step + 1) % 16;
+    }
+
+    musicToggleBtn.addEventListener('click', () => {
+      initAudio();
+      if (!isPlaying) {
+        isPlaying = true;
+        musicToggleBtn.textContent = '⏹ STOP BEAT';
+        musicToggleBtn.style.background = 'linear-gradient(135deg, #ef4444, #ff007f)';
+        visualizerBars.forEach(bar => bar.classList.add('playing'));
+        step = 0;
+        beatInterval = setInterval(tickBeat, 115);
+      } else {
+        isPlaying = false;
+        clearInterval(beatInterval);
+        musicToggleBtn.textContent = '▶ PLAY BEAT';
+        musicToggleBtn.style.background = 'linear-gradient(135deg, #ffe600, #ff007f)';
+        visualizerBars.forEach(bar => bar.classList.remove('playing'));
+      }
+    });
+
+    // ==========================================
+    // 2. Confetti Particle Burst Engine
+    // ==========================================
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let animationId = null;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function triggerConfetti() {
+      particles = [];
+      const colors = ['#ff007f', '#ffe600', '#39ff14', '#00f0ff', '#ffffff'];
+      for (let i = 0; i < 75; i++) {
+        particles.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          vx: (Math.random() - 0.5) * 16,
+          vy: (Math.random() - 0.5) * 16 - 3,
+          size: Math.random() * 8 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          rotSpeed: (Math.random() - 0.5) * 10,
+          alpha: 1,
+          decay: Math.random() * 0.02 + 0.012
+        });
+      }
+      if (!animationId) {
+        updateConfetti();
+      }
+    }
+
+    function updateConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach((p, index) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.25; // gravity
+        p.rotation += p.rotSpeed;
+        p.alpha -= p.decay;
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.fillStyle = p.color;
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+        ctx.restore();
+
+        if (p.alpha <= 0) {
+          particles.splice(index, 1);
+        }
+      });
+
+      if (particles.length > 0) {
+        animationId = requestAnimationFrame(updateConfetti);
+      } else {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    // ==========================================
+    // 3. BMI Functional Core & Brainrot UI Logic
+    // ==========================================
+    const cardWrap = document.getElementById('cardWrap');
+    const heightInput = document.getElementById('heightInput');
+    const weightInput = document.getElementById('weightInput');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const errorBox = document.getElementById('errorBox');
+    const resultSection = document.getElementById('resultSection');
+    const bmiValueEl = document.getElementById('bmiValue');
+    const categoryBadgeEl = document.getElementById('categoryBadge');
+
+    const auraEmoji = document.getElementById('auraEmoji');
+    const auraTitle = document.getElementById('auraTitle');
+    const auraQuote = document.getElementById('auraQuote');
+
+    const segments = {
+      underweight: document.getElementById('segUnderweight'),
+      normal: document.getElementById('segNormal'),
+      overweight: document.getElementById('segOverweight'),
+      obese: document.getElementById('segObese')
+    };
+
+    const rows = {
+      underweight: document.getElementById('rowUnderweight'),
+      normal: document.getElementById('rowNormal'),
+      overweight: document.getElementById('rowOverweight'),
+      obese: document.getElementById('rowObese')
+    };
+
+    function showError(message) {
+      errorBox.textContent = message;
+      errorBox.style.display = 'block';
+      resultSection.style.display = 'none';
+
+      // Screen shake trigger
+      cardWrap.classList.remove('screen-shake');
+      void cardWrap.offsetWidth; // re-flow
+      cardWrap.classList.add('screen-shake');
+
+      // Brainrot error commentary
+      auraEmoji.textContent = '💀🧢';
+      auraTitle.textContent = 'L RIZZ DETECTED (INVALID INPUT)';
+      auraQuote.textContent = "Daniela & Megan say that's not it, bestie! Enter valid numbers to get your aura back!";
+    }
+
+    function clearError() {
+      errorBox.textContent = '';
+      errorBox.style.display = 'none';
+      cardWrap.classList.remove('screen-shake');
+    }
+
+    function calculateBMI() {
+      clearError();
+
+      const heightRaw = heightInput.value.trim();
+      const weightRaw = weightInput.value.trim();
+
+      // 1. Check for empty fields
+      if (!heightRaw || !weightRaw) {
+        showError('Please fill in both fields: enter your height and weight.');
+        return;
+      }
+
+      // Comma to dot normalization
+      const normalizedHeight = heightRaw.replace(',', '.');
+      const normalizedWeight = weightRaw.replace(',', '.');
+
+      const heightCm = Number(normalizedHeight);
+      const weightKg = Number(normalizedWeight);
+
+      // 2. Check for non-numeric input (reachable via text inputmode)
+      if (isNaN(heightCm) || isNaN(weightKg) || !isFinite(heightCm) || !isFinite(weightKg)) {
+        showError('Please enter valid numerical values.');
+        return;
+      }
+
+      // 3. Check for non-positive input
+      if (heightCm <= 0 || weightKg <= 0) {
+        showError('Height and weight must be strictly greater than zero.');
+        return;
+      }
+
+      // 4. Realistic ranges validation
+      if (heightCm < 30 || heightCm > 300) {
+        showError('Please enter a realistic height (30 to 300 cm).');
+        return;
+      }
+
+      if (weightKg < 2 || weightKg > 600) {
+        showError('Please enter a realistic weight (2 to 600 kg).');
+        return;
+      }
+
+      // Exact Formula: kg / (m^2)
+      const heightM = heightCm / 100;
+      const rawBmi = weightKg / (heightM * heightM);
+
+      // Categorization strictly based on UNROUNDED BMI
+      let category = '';
+      let color = '';
+      let categoryKey = '';
+      let emoji = '';
+      let auraTag = '';
+      let quote = '';
+
+      if (rawBmi < 18.5) {
+        category = 'Underweight';
+        color = 'var(--electric-cyan)';
+        categoryKey = 'underweight';
+        emoji = '🍓🧃';
+        auraTag = 'FRUITY FEATHERWEIGHT AURA';
+        quote = 'Yoonchae says: "Sweet like strawberries! Grab a delicious snack & keep serving looks!"';
+      } else if (rawBmi < 25.0) {
+        category = 'Normal weight';
+        color = 'var(--acid-green)';
+        categoryKey = 'normal';
+        emoji = '🍉💅✨';
+        auraTag = '+1,000,000 AURA • CERTIFIED SLAY';
+        quote = 'Sophia & Lara say: "Absolute main character energy! In tip-top balance, no cap!"';
+      } else if (rawBmi < 30.0) {
+        category = 'Overweight';
+        color = 'var(--cyber-yellow)';
+        categoryKey = 'overweight';
+        emoji = '🥭🔥🕶️';
+        auraTag = 'EXTRA JUICY SIGMA STRENGTH';
+        quote = 'Megan & Daniela say: "Fierce & powerful presence! Hit the dance floor to Hootie Frutti!"';
+      } else {
+        category = 'Obese';
+        color = 'var(--hot-pink)';
+        categoryKey = 'obese';
+        emoji = '💥👑🧃';
+        auraTag = 'MAXIMUM BOSS BADDIE POWER';
+        quote = 'KATSEYE says: "Major power! Time to blast the beat, learn the choreo, and thrive!"';
+      }
+
+      // Round strictly for display (1 decimal place)
+      const roundedBmi = parseFloat(rawBmi.toFixed(1));
+      bmiValueEl.textContent = roundedBmi.toFixed(1);
+
+      categoryBadgeEl.textContent = category;
+      categoryBadgeEl.style.backgroundColor = color;
+
+      // Update Aura / Mascot panel
+      auraEmoji.textContent = emoji;
+      auraTitle.textContent = auraTag;
+      auraQuote.textContent = quote;
+
+      // Update segments
+      Object.keys(segments).forEach(key => {
+        segments[key].classList.toggle('active', key === categoryKey);
+      });
+
+      // Update table
+      Object.keys(rows).forEach(key => {
+        rows[key].classList.toggle('active-row', key === categoryKey);
+      });
+
+      resultSection.style.display = 'block';
+
+      // Confetti burst on successful calculation!
+      triggerConfetti();
+    }
+
+    function resetForm() {
+      heightInput.value = '';
+      weightInput.value = '';
+      clearError();
+      resultSection.style.display = 'none';
+
+      auraEmoji.textContent = '💅🧃';
+      auraTitle.textContent = 'KATSEYE HYPE SQUAD';
+      auraQuote.textContent = 'Drop your stats to calculate your Hootie Frutti aura level! No cap!';
+
+      heightInput.focus();
+    }
+
+    calculateBtn.addEventListener('click', calculateBMI);
+    resetBtn.addEventListener('click', resetForm);
+
+    [heightInput, weightInput].forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          calculateBMI();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+```
